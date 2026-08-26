@@ -54,3 +54,6 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/subtrack-api:latest .
           docker push $ECR_REGISTRY/subtrack-api:latest
+
+      - name: Force new ECS deployment
+        run: aws ecs update-service --cluster default --service subtrack-api --force-new-deployment
