@@ -6,6 +6,7 @@ using SubTrack.Domain.Interfaces;
 using SubTrack.Infrastructure.Persistence;
 using SubTrack.Api.Services;
 using Microsoft.OpenApi;
+using Amazon.SimpleEmailV2;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,8 +38,16 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<SubscriptionService>();
 builder.Services.AddScoped<ReminderService>();
 builder.Services.AddScoped<IClock, SystemClock>();
-builder.Services.AddScoped<INotificationSender, ConsoleNotificationSender>();
-
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<INotificationSender, ConsoleNotificationSender>();
+}
+else
+{
+    builder.Services.AddSingleton<IAmazonSimpleEmailServiceV2>(_ =>
+        new AmazonSimpleEmailServiceV2Client(Amazon.RegionEndpoint.USEast2));
+    builder.Services.AddScoped<INotificationSender, SesNotificationSender>();
+}
 // Tells ASP.NET Core how to validate an incoming JWT: which signature to
 // check it against, and which issuer/audience/expiry claims to enforce.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
