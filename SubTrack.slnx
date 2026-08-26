@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SubTrack.Api/SubTrack.Api.csproj" />
+    <Project Path="src/SubTrack.Domain/SubTrack.Domain.csproj" />
+    <Project Path="src/SubTrack.Infrastructure/SubTrack.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SubTrack.Tests/SubTrack.Tests.csproj" />
+  </Folder>
+</Solution>
