@@ -36,8 +36,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Scoped to the Blazor WASM frontend's dev origins — see src/SubTrack.Web/Properties/launchSettings.json.
 builder.Services.AddCors(options =>
 {
+    var frontendOrigins = new List<string> { "https://localhost:7100", "http://localhost:5100" };
+    var productionOrigin = builder.Configuration["Frontend:Origin"];
+    if (!string.IsNullOrEmpty(productionOrigin))
+    {
+        frontendOrigins.Add(productionOrigin);
+    }
+
     options.AddPolicy("Frontend", policy =>
-        policy.WithOrigins("https://localhost:7100", "http://localhost:5100")
+        policy.WithOrigins(frontendOrigins.ToArray())
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
@@ -101,5 +108,5 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapGet("/health", () => Results.Ok("Healthy"));
-
+app.MapGet("/debug/cors-origin", () => Results.Ok(builder.Configuration["Frontend:Origin"] ?? "NOT SET"));
 app.Run();
