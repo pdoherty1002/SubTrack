@@ -3,8 +3,10 @@
     <Project Path="src/SubTrack.Api/SubTrack.Api.csproj" />
     <Project Path="src/SubTrack.Domain/SubTrack.Domain.csproj" />
     <Project Path="src/SubTrack.Infrastructure/SubTrack.Infrastructure.csproj" />
+    <Project Path="src/SubTrack.Web/SubTrack.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/SubTrack.Tests/SubTrack.Tests.csproj" />
+    <Project Path="tests/SubTrack.Web.Tests/SubTrack.Web.Tests.csproj" />
   </Folder>
 </Solution>

@@ -1,0 +1,177 @@
+@page "/"
+@attribute [Authorize]
+@using SubTrack.Web.ApiClient
+@using SubTrack.Web.Components
+@inject SubscriptionStateService State
+@inject AuthenticationStateProvider AuthStateProvider
+@implements IDisposable
+
+<PageTitle>Dashboard - SubTrack</PageTitle>
+
+<MudAppBar Elevation="0" Dense="true">
+    <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Class="mr-2" />
+    <MudText Typo="Typo.h6" Style="font-weight:700;">SubTrack</MudText>
+    <MudSpacer />
+    <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" />
+    <MudAvatar Color="Color.Primary" Size="Size.Small" Class="ml-2">@initials</MudAvatar>
+</MudAppBar>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <div style="height: 560px; display: flex; flex-direction: column; gap: 16px;">
+                @if (urgentSubscriptions.Any())
+                {
+                    <MudAlert Severity="Severity.Error" Dense="true" Icon="@Icons.Material.Filled.Schedule">
+                        @foreach (var s in urgentSubscriptions)
+                        {
+                            <div>@s.Name renews in @RenewalBadge.Label(DaysUntil(s)), @s.Cost.ToString("C", GbCulture)</div>
+                        }
+                    </MudAlert>
+                }
+
+                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Current subscriptions</MudText>
+
+                <MudPaper Class="pa-3 flex-grow-1 subtrack-scroll-list" Outlined="true" Style="min-height: 0;">
+                    @if (!State.Subscriptions.Any())
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-2">
+                            No subscriptions yet — add one on the right.
+                        </MudText>
+                    }
+                    @foreach (var subscription in State.Subscriptions)
+                    {
+                        <SubscriptionRow Subscription="subscription" />
+                    }
+                </MudPaper>
+            </div>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4" Outlined="true" Style="height: 560px; overflow-y: auto;">
+                <MudText Typo="Typo.subtitle1" Style="font-weight:600;" Class="mb-4">Add subscription</MudText>
+
+                <EditForm Model="@this" OnValidSubmit="HandleAddAsync">
+                    <span class="subtrack-field-label">Name</span>
+                    <MudTextField @bind-Value="name" Placeholder="e.g. Spotify" Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" Class="mb-4" Required="true" />
+
+                    <span class="subtrack-field-label">Cost</span>
+                    <MudNumericField T="decimal" @bind-Value="cost" Placeholder="9.99" Variant="Variant.Outlined"
+                                      Margin="Margin.Dense" Class="mb-4" Min="0.01m" Format="F2" Required="true" />
+
+                    <span class="subtrack-field-label">Renewal date</span>
+                    <MudDatePicker @bind-Date="renewalDate" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                   Class="mb-4" Editable="true" />
+
+                    <span class="subtrack-field-label">Category</span>
+                    <MudSelect T="SubscriptionType" @bind-Value="subscriptionType" Variant="Variant.Outlined"
+                               Margin="Margin.Dense" Class="mb-4">
+                        @foreach (var option in EnumDisplay.SubscriptionTypes)
+                        {
+                            <MudSelectItem Value="@option.Value">@option.Label</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <span class="subtrack-field-label">Billing cycle</span>
+                    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined" Class="mb-4" FullWidth="true">
+                        @foreach (var option in EnumDisplay.BillingCycles)
+                        {
+                            <MudButton Variant="@(billingCycle == option.Value ? Variant.Filled : Variant.Outlined)"
+                                       OnClick="@(() => billingCycle = option.Value)">
+                                @option.Label
+                            </MudButton>
+                        }
+                    </MudButtonGroup>
+
+                    @if (errorMessage is not null)
+                    {
+                        <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4">@errorMessage</MudAlert>
+                    }
+
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+                               FullWidth="true" Disabled="@isSubmitting">
+                        Add subscription
+                    </MudButton>
+                </EditForm>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private static readonly System.Globalization.CultureInfo GbCulture =
+        System.Globalization.CultureInfo.GetCultureInfo("en-GB");
+
+    private string initials = "";
+
+    private string name = "";
+    private decimal cost = 0.01m;
+    private DateTime? renewalDate = DateTime.Today.AddDays(30);
+    private SubscriptionType subscriptionType = EnumDisplay.SubscriptionTypes[0].Value;
+    private BillingCycle billingCycle = EnumDisplay.BillingCycles[0].Value;
+    private string? errorMessage;
+    private bool isSubmitting;
+
+    private IEnumerable<SubscriptionDto> urgentSubscriptions =>
+        State.Subscriptions.Where(s => RenewalBadge.IsUrgent(DaysUntil(s)));
+
+    private int DaysUntil(SubscriptionDto s) => (s.NextRenewalDate.Date - DateTimeOffset.Now.Date).Days;
+
+    protected override async Task OnInitializedAsync()
+    {
+        State.OnChange += StateHasChanged;
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var email = authState.User.FindFirst("email")?.Value ?? "";
+        initials = string.IsNullOrEmpty(email) ? "?" : email[..1].ToUpperInvariant();
+
+        await State.LoadAsync();
+    }
+
+    private async Task HandleAddAsync()
+    {
+        if (renewalDate is null)
+        {
+            errorMessage = "Pick a renewal date.";
+            return;
+        }
+
+        isSubmitting = true;
+        errorMessage = null;
+
+        try
+        {
+            var request = new CreateSubscriptionRequest
+            {
+                Name = name,
+                Cost = (double)cost,
+                BillingCycle = billingCycle,
+                NextRenewalDate = new DateTimeOffset(renewalDate.Value),
+                SubscriptionType = subscriptionType,
+                ReminderEnabled = true,
+            };
+
+            await State.AddAsync(request);
+
+            name = "";
+            cost = 0.01m;
+            renewalDate = DateTime.Today.AddDays(30);
+            subscriptionType = EnumDisplay.SubscriptionTypes[0].Value;
+            billingCycle = EnumDisplay.BillingCycles[0].Value;
+        }
+        catch (ApiException)
+        {
+            errorMessage = "Couldn't add that subscription. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        State.OnChange -= StateHasChanged;
+    }
+}

@@ -1,0 +1,48 @@
+@using SubTrack.Web.ApiClient
+@inject SubscriptionStateService State
+@inject IDialogService DialogService
+
+<MudPaper Class="pa-4 mb-3" Outlined="true">
+    <div class="d-flex justify-space-between align-start">
+        <div>
+            <MudText Typo="Typo.subtitle1" Style="font-weight:600;">@Subscription.Name</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@FormattedCost / @CycleSuffix</MudText>
+        </div>
+        <MudChip T="string" Color="@RenewalBadge.ColorFor(DaysUntil)" Size="Size.Small" Variant="Variant.Filled">
+            @RenewalBadge.Label(DaysUntil)
+        </MudChip>
+    </div>
+    <div class="d-flex justify-space-between align-end mt-3">
+        <MudIconButton Icon="@Icons.Material.Filled.DeleteOutline" Size="Size.Small"
+                       OnClick="HandleDeleteAsync" title="Remove subscription" />
+        <div class="d-flex flex-column align-center">
+            <MudText Typo="Typo.caption" Color="Color.Secondary">Notify</MudText>
+            <MudSwitch T="bool" Value="Subscription.ReminderEnabled" ValueChanged="HandleReminderChanged" Color="Color.Primary" />
+        </div>
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public SubscriptionDto Subscription { get; set; } = null!;
+
+    private int DaysUntil => (Subscription.NextRenewalDate.Date - DateTimeOffset.Now.Date).Days;
+
+    private string FormattedCost =>
+        Subscription.Cost.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-GB"));
+
+    private string CycleSuffix => Subscription.BillingCycle == BillingCycle._1 ? "year" : "month";
+
+    private void HandleReminderChanged(bool value) => State.SetReminderLocally(Subscription.Id, value);
+
+    private async Task HandleDeleteAsync()
+    {
+        var confirmed = await DialogService.ShowMessageBoxAsync(
+            "Remove subscription",
+            $"Remove {Subscription.Name}? This can't be undone.",
+            yesText: "Remove", cancelText: "Cancel");
+
+        if (confirmed == true)
+            await State.RemoveAsync(Subscription.Id);
+    }
+}

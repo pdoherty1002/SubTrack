@@ -1,0 +1,88 @@
+@page "/register"
+@inject IAuthApi AuthApi
+@inject TokenStore TokenStore
+@inject NavigationManager Navigation
+
+<PageTitle>Create account - SubTrack</PageTitle>
+
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px;">
+    <MudPaper Class="pa-8" Style="width: 100%; max-width: 420px;" Elevation="0" Outlined="true">
+        <div class="d-flex flex-column align-center mb-6">
+            <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mb-3">
+                <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" />
+            </MudAvatar>
+            <MudText Typo="Typo.h5" Style="font-weight: 700;">SubTrack</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Create your account.</MudText>
+        </div>
+
+        @if (errorMessage is not null)
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4" Dense="true">@errorMessage</MudAlert>
+        }
+
+        <EditForm Model="@this" OnValidSubmit="HandleRegisterAsync">
+            <span class="subtrack-field-label">Email</span>
+            <MudTextField @bind-Value="email" Placeholder="name@email.com" Variant="Variant.Outlined"
+                          InputType="InputType.Email" Class="mb-4" Margin="Margin.Dense" Required="true" />
+
+            <span class="subtrack-field-label">Password</span>
+            <MudTextField @bind-Value="password" Placeholder="At least 8 characters" Variant="Variant.Outlined"
+                          InputType="InputType.Password" Class="mb-4" Margin="Margin.Dense" Required="true" />
+
+            <span class="subtrack-field-label">Confirm password</span>
+            <MudTextField @bind-Value="confirmPassword" Placeholder="Re-enter your password" Variant="Variant.Outlined"
+                          InputType="InputType.Password" Class="mb-2" Margin="Margin.Dense" Required="true" />
+
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+                       FullWidth="true" Class="mt-4" Disabled="@isSubmitting">
+                Register
+            </MudButton>
+        </EditForm>
+
+        <div class="d-flex flex-column align-center mt-4">
+            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => Navigation.NavigateTo("/login"))">
+                Already have an account? Log in
+            </MudButton>
+        </div>
+    </MudPaper>
+</div>
+
+@code {
+    private string email = "";
+    private string password = "";
+    private string confirmPassword = "";
+    private string? errorMessage;
+    private bool isSubmitting;
+
+    private async Task HandleRegisterAsync()
+    {
+        errorMessage = null;
+
+        if (password.Length < 8)
+        {
+            errorMessage = "Password must be at least 8 characters.";
+            return;
+        }
+
+        if (password != confirmPassword)
+        {
+            errorMessage = "Passwords don't match.";
+            return;
+        }
+
+        isSubmitting = true;
+
+        var result = await AuthApi.RegisterAsync(email, password);
+
+        if (result.Success)
+        {
+            await TokenStore.SetTokenAsync(result.Token!);
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            errorMessage = result.ErrorMessage;
+            isSubmitting = false;
+        }
+    }
+}

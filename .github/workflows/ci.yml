@@ -48,12 +48,23 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, and push image
+      - name: Build, tag, and push API image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           docker build -t $ECR_REGISTRY/subtrack-api:latest .
           docker push $ECR_REGISTRY/subtrack-api:latest
 
-      - name: Force new ECS deployment
+      - name: Force new API deployment
         run: aws ecs update-service --cluster default --service subtrack-api --force-new-deployment
+
+      - name: Build, tag, and push frontend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker build -f src/SubTrack.Web/Dockerfile -t $ECR_REGISTRY/subtrack-web:latest .
+          docker push $ECR_REGISTRY/subtrack-web:latest
+          
+      - name: Force new frontend deployment
+        run: aws ecs update-service --cluster default --service subtrack-web-4a2a --force-new-deployment
+      
