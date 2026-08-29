@@ -12,7 +12,7 @@ using SubTrack.Infrastructure.Persistence;
 namespace SubTrack.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260825121457_InitialCreate")]
+    [Migration("20260829091308_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -77,6 +77,9 @@ namespace SubTrack.Infrastructure.Migrations
 
                     b.Property<bool>("ReminderEnabled")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("SubscriptionType")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");

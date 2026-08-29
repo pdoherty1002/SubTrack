@@ -12,11 +12,13 @@ namespace SubTrack.Api.Contracts;
 /// <param name="BillingCycle">How often this subscription renews.</param>
 /// <param name="NextRenewalDate">The next date this subscription is due to renew.</param>
 /// <param name="ReminderEnabled">Whether the user wants to be reminded before this subscription renews.</param>
+/// <param name="SubscriptionType">The category this subscription belongs to.</param>
 public record SubscriptionDto(
     int Id,
     string Name,
     decimal Cost,
     BillingCycle BillingCycle,
     DateOnly NextRenewalDate,
-    bool ReminderEnabled
+    bool ReminderEnabled,
+    SubscriptionType SubscriptionType
 );

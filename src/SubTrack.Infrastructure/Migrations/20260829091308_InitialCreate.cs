@@ -38,7 +38,8 @@ namespace SubTrack.Infrastructure.Migrations
                     BillingCycle = table.Column<int>(type: "integer", nullable: false),
                     NextRenewalDate = table.Column<DateOnly>(type: "date", nullable: false),
                     ReminderEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    SubscriptionType = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {

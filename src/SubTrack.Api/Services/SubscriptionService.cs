@@ -42,7 +42,8 @@ public class SubscriptionService
             Cost = request.Cost,
             BillingCycle = request.BillingCycle,
             NextRenewalDate = request.NextRenewalDate,
-            ReminderEnabled = request.ReminderEnabled
+            ReminderEnabled = request.ReminderEnabled,
+            SubscriptionType = request.SubscriptionType
         };
 
         await _subscriptionRepo.AddAsync(subscription);
@@ -68,5 +69,5 @@ public class SubscriptionService
     }
 
     private static SubscriptionDto ToDto(Subscription s) =>
-        new(s.Id, s.Name, s.Cost, s.BillingCycle, s.NextRenewalDate, s.ReminderEnabled);
+        new(s.Id, s.Name, s.Cost, s.BillingCycle, s.NextRenewalDate, s.ReminderEnabled, s.SubscriptionType);
 }

@@ -29,4 +29,7 @@ public class Subscription
 
     /// <summary>When this subscription was first added.</summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>The type of subscription creayed by the user./// </summary>
+    public SubscriptionType SubscriptionType { get; set; }
 }

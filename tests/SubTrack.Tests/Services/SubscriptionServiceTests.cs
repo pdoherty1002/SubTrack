@@ -32,9 +32,9 @@ public class SubscriptionServiceTests
 
         var allSubscriptions = new List<Subscription>
         {
-            new() { Id = 1, UserId = userA, Name = "Netflix", NextRenewalDate = new DateOnly(2026, 9, 15) },
-            new() { Id = 2, UserId = userA, Name = "Spotify", NextRenewalDate = new DateOnly(2026, 8, 30) },
-            new() { Id = 3, UserId = userB, Name = "Disney+", NextRenewalDate = new DateOnly(2026, 8, 25) }
+            new() { Id = 1, UserId = userA, Name = "Netflix", NextRenewalDate = new DateOnly(2026, 9, 15), SubscriptionType = SubscriptionType.Streaming },
+            new() { Id = 2, UserId = userA, Name = "Spotify", NextRenewalDate = new DateOnly(2026, 8, 30), SubscriptionType = SubscriptionType.Streaming },
+            new() { Id = 3, UserId = userB, Name = "Disney+", NextRenewalDate = new DateOnly(2026, 8, 25), SubscriptionType = SubscriptionType.Streaming }
         };
 
         var mockRepo = CreateRepoOver(allSubscriptions);
@@ -58,7 +58,7 @@ public class SubscriptionServiceTests
 
         var allSubscriptions = new List<Subscription>
         {
-            new() { Id = 1, UserId = userB, Name = "Disney+", NextRenewalDate = new DateOnly(2026, 8, 25) }
+            new() { Id = 1, UserId = userB, Name = "Disney+", NextRenewalDate = new DateOnly(2026, 8, 25), SubscriptionType = SubscriptionType.Streaming, }
         };
 
         var mockRepo = CreateRepoOver(allSubscriptions);
@@ -77,7 +77,7 @@ public class SubscriptionServiceTests
         // Arrange
         var mockRepo = new Mock<IRepository<Subscription, int>>();
         var userId = Guid.NewGuid();
-        var request = new CreateSubscriptionRequest("Netflix", 15.99m, BillingCycle.Monthly, new DateOnly(2026, 9, 1));
+        var request = new CreateSubscriptionRequest("Netflix", 15.99m, BillingCycle.Monthly, new DateOnly(2026, 9, 1), SubscriptionType.Streaming);
 
         // Act
         var service = new SubscriptionService(mockRepo.Object);
@@ -87,10 +87,11 @@ public class SubscriptionServiceTests
         Assert.Equal("Netflix", result.Name);
         Assert.Equal(15.99m, result.Cost);
         Assert.True(result.ReminderEnabled);
+        Assert.Equal(SubscriptionType.Streaming, result.SubscriptionType);
 
         // Assert — check the entity that was actually staged for persistence carries
         // the userId passed in, not anything derived from the request body.
-        mockRepo.Verify(r => r.AddAsync(It.Is<Subscription>(s => s.UserId == userId)), Times.Once);
+        mockRepo.Verify(r => r.AddAsync(It.Is<Subscription>(s => s.UserId == userId && s.SubscriptionType == SubscriptionType.Streaming)), Times.Once);
         mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 

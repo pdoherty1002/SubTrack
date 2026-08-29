@@ -75,6 +75,9 @@ namespace SubTrack.Infrastructure.Migrations
                     b.Property<bool>("ReminderEnabled")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("SubscriptionType")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
