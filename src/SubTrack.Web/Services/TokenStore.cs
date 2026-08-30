@@ -30,11 +30,8 @@ public class TokenStore(IJSRuntime jsRuntime)
 
     public async Task SetTokenAsync(string token)
     {
-        Console.WriteLine($"[TokenStore] SetTokenAsync called with token length {token?.Length}");
         Token = token;
-        Console.WriteLine("[TokenStore] In-memory Token set, about to write to sessionStorage");
         await jsRuntime.InvokeVoidAsync("sessionStorage.setItem", StorageKey, token);
-        Console.WriteLine("[TokenStore] sessionStorage write completed");
         OnChange?.Invoke();
     }
 

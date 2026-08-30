@@ -15,7 +15,7 @@ builder.Services.AddMudServices();
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
     ?? throw new InvalidOperationException("ApiBaseUrl is not configured in wwwroot/appsettings.json.");
 
-builder.Services.AddScoped<TokenStore>();
+builder.Services.AddSingleton<TokenStore>();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddTransient<AuthHeaderHandler>();
