@@ -50,7 +50,7 @@ Both services sit behind Application Load Balancers provisioned automatically by
 
 ## Live demo
 
-**[su-ec7a765b2d944a8cb9f270f15374d662.ecs.us-east-2.on.aws](https://su-ec7a765b2d944a8cb9f270f15374d662.ecs.us-east-2.on.aws/)**
+**[su-ec7a765b2d944a8cb9f270f15374d662.ecs.us-east-2.on.aws](https://su-ec7a765b2d944a8cb9f270f15374d662.ecs.us-east-2.on.aws/)** **Currently deactivated**
 
 Register an account to get started.
 
